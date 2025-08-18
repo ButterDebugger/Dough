@@ -1,13 +1,13 @@
 import { collection, type DomCollection } from "./collection.ts";
 import { $$ } from "./global.ts";
 import { parse } from "./parser.ts";
-import type { DomLike, DomParsable } from "./types.ts";
+import type { DomParsable } from "./types.ts";
 import { isContext, isDomParsable, isHTML } from "./utils.ts";
 
 /**
  * Dom wrapper for a single element
  */
-export class DomContext<L extends Element = Element> implements DomLike {
+export class DomContext<L extends Element = Element> {
     readonly #ele: L;
 
     constructor(element: L) {
@@ -728,5 +728,3 @@ export function dom<L extends Element = Element>(
 
     return null;
 }
-
-dom(document.createElement("p")).find("p");

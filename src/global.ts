@@ -1,6 +1,7 @@
 import { collection, type DomCollection } from "./collection.ts";
 import { dom, type DomContext } from "./context.ts";
-import type { DomGlobal, DomLike, DomParsable } from "./types.ts";
+import { type Signal, signal } from "./signal.ts";
+import type { DomGlobal, DomParsable } from "./types.ts";
 import { isDomParsable } from "./utils.ts";
 
 /**
@@ -26,14 +27,6 @@ export const $$: DomGlobal = {
  * @returns A reference to the DomGlobal object, aka $$
  */
 export function $(): DomGlobal;
-/**
- * Creates a new DomContext from a string
- * @param input An HTML string or query section
- * @returns A new DomContext or null if the input is invalid
- */
-export function $<L extends Element = Element>(
-    input: string,
-): DomContext<L> | null;
 /**
  * Creates a new DomContext from an existing element
  * @param input The element to be wrapped
@@ -65,19 +58,17 @@ export function $<L extends Element = Element>(
     input: DomParsable[],
 ): DomCollection<L>;
 /**
- * Creates a DomLike wrapper object for the given input
- * @param input The input to wrap
- * @returns A new DomLike wrapper object
+ * Creates a new signal
+ * @param input The initial value of the signal
  */
-export function $(input: Window | Document): DomLike;
-export function $<L extends Element = Element>(
-    input:
-        | undefined
-        | DomParsable
-        | DomParsable[]
-        | Window
-        | Document = undefined,
-): DomGlobal | DomContext<L> | DomCollection<L> | DomLike | null {
+export function $<T>(input: T): Signal<T>;
+export function $<T>(
+    input: undefined | NonNullable<T> | DomParsable | DomParsable[] = undefined,
+):
+    | DomGlobal
+    | DomContext<T extends Element ? T : Element>
+    | DomCollection<T extends Element ? T : Element>
+    | Signal<NonNullable<T>> {
     // Return DomGlobal
     if (typeof input === "undefined") {
         return $$;
@@ -90,49 +81,10 @@ export function $<L extends Element = Element>(
 
     // Return DomContext
     if (isDomParsable(input)) {
+        // TODO: Make only match Element and DomContext
         return dom(input);
     }
 
-    // Create an anonymous DomLike wrapper class for the subject
-    // TODO: Look into better ways to make a wrapper object
-    return new (class implements DomLike {
-        on<K extends keyof GlobalEventHandlersEventMap>(
-            event: K,
-            callback: (event: GlobalEventHandlersEventMap[K]) => void,
-        ): DomLike;
-        on<E extends Event>(
-            event: string,
-            callback: (event: E) => void,
-        ): DomLike;
-        on(event: string, callback: EventListener): DomLike {
-            $$.on(input, event, callback);
-            return this;
-        }
-
-        once<K extends keyof GlobalEventHandlersEventMap>(
-            event: K,
-            callback: (event: GlobalEventHandlersEventMap[K]) => void,
-        ): DomLike;
-        once<E extends Event>(
-            event: string,
-            callback: (event: E) => void,
-        ): DomLike;
-        once(event: string, callback: EventListener): DomLike {
-            $$.once(input, event, callback);
-            return this;
-        }
-
-        off<K extends keyof GlobalEventHandlersEventMap>(
-            event: K,
-            callback: (event: GlobalEventHandlersEventMap[K]) => void,
-        ): DomLike;
-        off<E extends Event>(
-            event: string,
-            callback: (event: E) => void,
-        ): DomLike;
-        off(event: string, callback: EventListener): DomLike {
-            $$.off(input, event, callback);
-            return this;
-        }
-    })();
+    // Return Signal
+    return signal(input);
 }

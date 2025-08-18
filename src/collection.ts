@@ -1,14 +1,14 @@
 import { dom, type DomContext } from "./context.ts";
 import { parse } from "./parser.ts";
-import type { DomLike, DomParsable } from "./types.ts";
+import type { DomParsable } from "./types.ts";
 import { isDomParsable, isHTML } from "./utils.ts";
 
 /**
  * Dom wrapper for a list of elements
  */
-export class DomCollection<L extends Element = Element>
-    extends Array<DomContext<L>>
-    implements DomLike {
+export class DomCollection<L extends Element = Element> extends Array<
+    DomContext<L>
+> {
     constructor(...args: DomParsable[]) {
         const elements: DomContext<L>[] = [];
 
